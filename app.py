@@ -35,6 +35,7 @@ monthly_charges = st.number_input("Monthly Charges", min_value=0.0, step=50.0)
 # ✅ AUTO-CALCULATE TotalCharges (IMPORTANT FIX)
 total_charges = tenure * monthly_charges
 st.info(f"Calculated Total Charges: {total_charges}")
+st.caption("ℹ️ Total Charges are auto-calculated based on tenure and monthly charges.")
 
 # ---------------- CREATE INPUT DATAFRAME ----------------
 input_df = pd.DataFrame([{
@@ -66,6 +67,7 @@ if st.button("Predict Churn"):
         st.error("⚠️ Customer is likely to CHURN")
     else:
         st.success("✅ Customer is NOT likely to churn")
+
 
 
 
