@@ -5,7 +5,6 @@ import pandas as pd
 # ---------------- LOAD MODEL SAFELY ----------------
 loaded_obj = pickle.load(open("customer_churn_model.pkl", "rb"))
 
-# Handle different save formats
 if isinstance(loaded_obj, dict):
     model = loaded_obj.get("model") or loaded_obj.get("clf")
 elif isinstance(loaded_obj, tuple):
@@ -16,7 +15,7 @@ else:
 # Load encoders
 encoders = pickle.load(open("encoders.pkl", "rb"))
 
-# Get training feature names (VERY IMPORTANT)
+# Training feature order
 expected_features = model.feature_names_in_
 
 # ---------------- STREAMLIT UI ----------------
@@ -29,9 +28,13 @@ st.write("Enter customer details to predict churn")
 gender = st.selectbox("Gender", ["Male", "Female"])
 partner = st.selectbox("Partner", ["Yes", "No"])
 dependents = st.selectbox("Dependents", ["Yes", "No"])
-tenure = st.number_input("Tenure (months)", min_value=0)
-monthly_charges = st.number_input("Monthly Charges", min_value=0.0)
-total_charges = st.number_input("Total Charges", min_value=0.0)
+
+tenure = st.number_input("Tenure (months)", min_value=0, step=1)
+monthly_charges = st.number_input("Monthly Charges", min_value=0.0, step=50.0)
+
+# ✅ AUTO-CALCULATE TotalCharges (IMPORTANT FIX)
+total_charges = tenure * monthly_charges
+st.info(f"Calculated Total Charges: {total_charges}")
 
 # ---------------- CREATE INPUT DATAFRAME ----------------
 input_df = pd.DataFrame([{
@@ -53,12 +56,17 @@ input_df = input_df.reindex(columns=expected_features, fill_value=0)
 
 # ---------------- PREDICTION ----------------
 if st.button("Predict Churn"):
-    prediction = model.predict(input_df)
+    # Probability of churn (class = 1)
+    churn_proba = model.predict_proba(input_df)[0][1]
 
-    if prediction[0] == 1:
+    st.write(f"🔍 Churn Probability: **{churn_proba:.2%}**")
+
+    # ✅ Business-friendly threshold
+    if churn_proba > 0.6:
         st.error("⚠️ Customer is likely to CHURN")
     else:
         st.success("✅ Customer is NOT likely to churn")
+
 
 
 
