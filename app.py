@@ -3,7 +3,15 @@ import pickle
 import pandas as pd
 
 # Load trained model and encoders (MATCH GITHUB FILENAMES)
-model = pickle.load(open("customer_churn_model.pkl", "rb"))
+loaded_obj = pickle.load(open("customer_churn_model.pkl", "rb"))
+
+# Handle different saved formats safely
+if isinstance(loaded_obj, dict):
+    model = loaded_obj.get("model") or loaded_obj.get("clf")
+elif isinstance(loaded_obj, tuple):
+    model = loaded_obj[0]
+else:
+    model = loaded_obj
 encoders = pickle.load(open("encoders.pkl", "rb"))
 
 st.set_page_config(page_title="Customer Churn Prediction", layout="centered")
@@ -42,5 +50,6 @@ if st.button("Predict Churn"):
         st.error("⚠️ Customer is likely to CHURN")
     else:
         st.success("✅ Customer is NOT likely to churn")
+
 
 
